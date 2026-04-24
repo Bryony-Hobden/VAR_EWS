@@ -5,7 +5,7 @@ Create 3 folders in the same directory:
 - Code 
 - Figures
 - Data
-- 
+
 Save code files into the code folder.
 
 Parameters.m contains the parameters used for the fold, subcritical and singular Hopf systems for the VAR eigenvalue estimation.
