@@ -40,7 +40,7 @@ function fn = make_analysis_fig(var, par)
     width=1100;
     height=800;
     set(gcf,'position',[x0,y0,width,height])
-    tl = tiledlayout(4,1,'TileSpacing','compact','Padding','compact');
+    tl = tiledlayout(5,1,'TileSpacing','compact','Padding','compact');
     sgtitle(par.Title);
   
     ax1 = nexttile;
@@ -84,6 +84,9 @@ function fn = make_analysis_fig(var, par)
             eJ=eigs(Jac);
             eJ1R(j)=real(eJ(1));
             eJ2R(j)=real(eJ(2));
+
+            eJ1I(j)=imag(eJ(1));
+            eJ2I(j)=imag(eJ(2));
     
             % calculate analytical form of Jacobian
             % using last point of block
@@ -93,6 +96,7 @@ function fn = make_analysis_fig(var, par)
             eJA=eigs(JacA); %analytical eigs
             eJA1R(j)=real(eJA(1)); %real part 1 analytical eigs
             eJA2R(j)=real(eJA(2)); %real part 2 analytical eigs
+            eJA1I(j)=imag(eJA(1)); %imag part analyticl eigs
             
             % Calculating AR1 for comparison in each j window
             [acfx,lagsx] = autocorr(winvx);
@@ -142,24 +146,44 @@ function fn = make_analysis_fig(var, par)
                         real(Eigs.("block" + j).("sample"+k)(1));
                     eJ2Rs.("block" + j).("sample"+k) = ...
                         real(Eigs.("block" + j).("sample"+k)(2));
+                    eJ1Is.("block" + j).("sample"+k) = ...
+                        abs(imag(Eigs.("block" + j).("sample"+k)(1)));
+                    %eJ2Is.("block" + j).("sample"+k) = ...
+                        %abs(imag(Eigs.("block" + j).("sample"+k)(2)));
+                    
 
 
                 %for each block j convert  all k eigs into arrays to find min
                 %and max over each block
                 arrayej1s = cell2mat(struct2cell(eJ1Rs.("block" + j)));
                 arrayej2s = cell2mat(struct2cell(eJ2Rs.("block" + j)));
+         
                 minej1(j) = min(arrayej1s);
                 maxej1(j) = max(arrayej1s);
 
                 minej2(j) = min(arrayej2s);
                 maxej2(j) = max(arrayej2s);
 
+                %do same for imag (should be same for 2x2)
+                
+                arrayejI1s = cell2mat(struct2cell(eJ1Is.("block" + j)));
+         
+                minejI1(j) = min(arrayejI1s);
+                maxejI1(j) = max(arrayejI1s);
+
+               
                 %calculate mean and standard deviations over the 1000 samples for each
                 %block j
                 meanej1(j) = mean(arrayej1s);
                 meanej2(j) = mean(arrayej2s);
                 stdej1(j) = std(arrayej1s);
                 stdej2(j) = std(arrayej2s);
+
+                % same for imag
+                meanejI1(j) = mean(arrayejI1s);        
+                stdejI1(j) = std(arrayejI1s);
+           
+
 
             end
         end
@@ -183,8 +207,32 @@ function fn = make_analysis_fig(var, par)
     eJA2R = eJA2R(1:endpoint);
     lag1max=max(lag1x,lag1y);
     lag1min=min(lag1x,lag1y);
+    meanejI1 =meanejI1(1:endpoint);
+    stdejI1= stdejI1(1:endpoint);
+    eJA1I = eJA1I(1:endpoint);
+    
 
+    %imaginary plot
     ax2 = nexttile;
+    col = [0 128 0]/255;
+    hold on
+    %plot for monte carlo simulation
+    plot(wvt, meanejI1, LineWidth=1.5, color='#008000')
+    fill([wvt, fliplr(wvt)], [max(0, meanejI1-stdejI1), fliplr(meanejI1+stdejI1)], ...
+         col, 'FaceAlpha', 0.2, 'EdgeColor', 'none')
+    plot(wvt, max(0, meanejI1-stdejI1), color = '#008000', LineWidth=0.5)
+    plot(wvt, meanejI1+stdejI1, color = '#008000', LineWidth=0.5)
+    plot(wvt, eJA1I, '*', LineWidth=1.5, Color='#06402B'); %green
+    xline(par.lambda_0/par.r, Color='black', LineWidth=1.5, LineStyle='--');
+    yline(0)
+    ylabel('$\left|\mathrm{Im}(\mu_i)\right|$', ...
+       'Interpreter','latex', 'FontSize',11)
+    legend('$\left|\mathrm{Im}(\mu_i)\right|$ estimate', ...
+       'SE $\left|\mathrm{Im}(\mu_i)\right|$', '', '', '$\left|\mathrm{Im}(\mu_i)\right|$ analytical', '', '', ...
+       'Location','eastoutside', 'FontSize',11, 'Interpreter','latex');
+    hold off
+   
+    ax3 = nexttile;
     hold on
     yline(0)
     %plot for monte carlo simulation
@@ -206,21 +254,21 @@ function fn = make_analysis_fig(var, par)
         '', '', '', '', '$\mathcal{R}(\mu_1)$ analytical', '$\mathcal{R}(\mu_2)$ analytical','',...
         'Location','eastoutside', 'FontSize',11, 'Interpreter','latex');
     xlabel('t')
-    ylabel('$\mathcal{R}(\mu_i)$', 'Interpreter', 'latex')
+    ylabel('$\mathcal{R}(\mu_i)$', 'Interpreter', 'latex', 'FontSize',11)
     hold off
 
-    ax3 = nexttile;
+    ax4 = nexttile;
     hold on
     xlabel('t')
     yline(1)
     xline(par.lambda_0/par.r, color = 'black', Linewidth=1.5, LineStyle='--')
     plot(wvt, lag1x, color='#2580cf', LineWidth=1.5)
     plot(wvt, lag1y, Color='#cf25b8', LineWidth=1.5)
-    ylabel('AR(1)')
+    ylabel('AR(1)', 'FontSize',11)
     legend('', '','x', 'y', 'Location','eastoutside', 'FontSize',11);
     hold off
 
-    ax4 = nexttile;
+    ax5 = nexttile;
     hold on
     xlabel('t')
     yline(0)
@@ -257,11 +305,11 @@ function fn = make_analysis_fig(var, par)
         "par.evplot not set!";
 
     end
-    ylabel('Value')
+    ylabel('Value', 'FontSize',11)
    
     hold off
     
-    linkaxes([ax1 ax2 ax3 ax4],'x')
+    linkaxes([ax1 ax2 ax3 ax4 ax5],'x')
 
     fn = gcf();
 

@@ -44,6 +44,7 @@ pars(2).plot = 2;
 pars(2).omega=0.3;
 pars(2).sub = 10;
 pars(2).epsilon = 1;
+pars(3).evplot =2;
 
 
 %Fold
@@ -63,3 +64,4 @@ pars(3).blocksize=1250;
 pars(3).v0= [0.3; 0.514]; %starting on/near critical manifold near fixed point
 pars(3).plot = 3;
 pars(3).sub =10;
+pars(3).evplot =2;

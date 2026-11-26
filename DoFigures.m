@@ -25,7 +25,7 @@ fnames(fno).n='Fold_slowramp';
 
 
 %% X, EVS
-for i=1:fno
+for i=3
     tic 
     file_name = [Dfolder fnames(i).n];
     load([file_name '.mat'])
